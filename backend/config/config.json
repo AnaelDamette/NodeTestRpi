@@ -1,20 +1,20 @@
 {
   "development": {
-    "username": "GroupoAdmin",
+    "username": "nodeRpi",
     "password": "pourquoi",
-    "database": "GroupoTwit",
+    "database": "nodeRpiBase",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
   "test": {
-    "username": "root",
+    "username": "XXXX",
     "password": null,
     "database": "database_test",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
   "production": {
-    "username": "root",
+    "username": "XXXX",
     "password": null,
     "database": "database_production",
     "host": "127.0.0.1",
