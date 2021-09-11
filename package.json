@@ -1,0 +1,25 @@
+{
+  "name": "nodetestrpi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "blink.js",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "nodemon": "^2.0.12",
+    "sequelize": "^6.6.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnaelDamette/NodeTestRpi.git"
+  },
+  "author": "AnaelDamette",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AnaelDamette/NodeTestRpi/issues"
+  },
+  "homepage": "https://github.com/AnaelDamette/NodeTestRpi#readme"
+}
