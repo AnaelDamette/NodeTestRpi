@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+
+  <h1>Control LED light</h1>
+  <p><input type="checkbox" id="lamp1"></p>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+  <!-- include socket.io client side script -->
+  <script>
+    var Gpio = require('onoff').Gpio; //include onoff to interact with the GPIO
+    // var LED = new Gpio(27, 'out'); //use GPIO pin 4, and specify that it is output
+    // var blinkInterval = setInterval(blinkLED, 250); //run the blinkLED function every 250ms
+
+
+    var lampe = new Gpio(27, 'both'); //use GPIO pin 4, and specify that it is output
+
+
+    function lampeOnOff() {
+      console.log("Je suis dans la fonction lampeOnOff")
+      let verif = lampe.readSync()
+      switch (verif) {
+        case 0:
+          lampe.writeSync(1);
+          console.log("Lampe On")
+          break;
+        case 1:
+          lampe.writeSync(0);
+          console.log("Lampe Off")
+          break;
+        default:
+          console.log("Je ne trouve pas la lampe")
+      }
+
+    }
+    btnLampe = document.querySelector('#lampe1')
+    btnLampe.addEventListener('click', lampeOnOff())
+
+  </script>
+
+</body>
+
+</html>
