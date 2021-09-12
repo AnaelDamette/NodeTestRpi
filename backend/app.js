@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const userRoutes = require('./routes/user.js');
+const tempHumidityRoutes = requite('./routes/tempHumidity.js')
 const path = require('path');
 const app = express();
 const { Sequelize, sequelize } = require('./models')
@@ -26,4 +27,5 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 
 app.use('/api/auth', userRoutes);
+app.use('/api/tempHumidity', tempHumidityRoutes)
 module.exports = app;

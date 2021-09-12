@@ -1,69 +1,27 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 //const User = require('../models/user.js');
-const jwt = require('jsonwebtoken');
-const models = require('../models');
-let verifInput = require('../utils/verifInputs');
-const e = require('express');
-const fs = require('fs');
+const jwt = require("jsonwebtoken");
+const models = require("../models");
+let verifInput = require("../utils/verifInputs");
+const e = require("express");
+const fs = require("fs");
 
-var crypto = require('crypto'),
-  algorithm = 'aes-256-ctr',
-  password = 'aes-256-ctr';
-
-
+var crypto = require("crypto"),
+  algorithm = "aes-256-ctr",
+  password = "aes-256-ctr";
 
 function decrypt(text) {
-  var decipher = crypto.createDecipher(algorithm, password)
-  var dec = decipher.update(text, 'hex', 'utf8')
-  dec += decipher.final('utf8');
+  var decipher = crypto.createDecipher(algorithm, password);
+  var dec = decipher.update(text, "hex", "utf8");
+  dec += decipher.final("utf8");
   return dec;
 }
 
-
-
 function encrypt(text) {
-  var cipher = crypto.createCipher(algorithm, password)
-  var crypted = cipher.update(text, 'utf8', 'hex')
-  crypted += cipher.final('hex');
+  var cipher = crypto.createCipher(algorithm, password);
+  var crypted = cipher.update(text, "utf8", "hex");
+  crypted += cipher.final("hex");
   return crypted;
-}
-
-
-function deleteAllArrayPost(post) {
-  //supprime le post dans la boucle
-  let uuidPost = post.uuidPost
-  if (post) {
-    if (post.attachement) {
-      const filename = post.attachement.split('/images/')[1];
-      console.log("j'ai supprimé le file name  ")
-      fs.unlink(`images/${filename}`, () => {
-
-        models.comment.destroy({
-          where: { postId: post.id }
-        }).then(() => {
-          models.post.destroy({
-            include: [{ model: models.comment, as: "comment" }],
-            where: { uuidPost }
-          })
-            .catch(err => res.status(500).json(err))
-        })
-          .catch(err => res.status(500).json(err))
-      })
-      return
-    } else {
-      models.comment.destroy({
-        where: { postId: post.id }
-      }).then(() => {
-        models.post.destroy({
-          include: [{ model: models.comment, as: "comment" }],
-          where: { uuidPost }
-        })
-          .catch(err => res.status(500).json(err))
-      })
-        .catch(err => res.status(500).json(err))
-      return
-    }
-  } else { return }
 }
 
 exports.signup = (req, res, next) => {
@@ -73,207 +31,181 @@ exports.signup = (req, res, next) => {
   let password = req.body.password;
 
   if (email == null || username == null || password == null) {
-    res.status(400).json({ error: 'il manque un paramètre' })
+    res.status(400).json({ error: "il manque un paramètre" });
   }
 
   //TO DO => Vérification des saisies user
   let emailOk = verifInput.validEmail(req.body.email);
-  console.log("verif email " + emailOk)
+  console.log("verif email " + emailOk);
   let mdpOK = verifInput.validPassword(password);
-  console.log("verif mdp " + mdpOK)
+  console.log("verif mdp " + mdpOK);
   let usernameOk = verifInput.validUsername(username);
-  console.log("verif username " + usernameOk)
+  console.log("verif username " + usernameOk);
   if (emailOk == true && mdpOK == true && usernameOk == true) {
     //Vérification si user n'existe pas déjà
     models.User.findOne({
-      attributes: ['username'],
-      where: { username: username }
+      attributes: ["username"],
+      where: { username: username },
     })
       .then(() => {
         models.User.findOne({
-          attributes: ['email'],
-          where: { email: email }
-        })
+          attributes: ["email"],
+          where: { email: email },
+        });
       })
-      .catch(error => {
-        res.status(409).json({ error: 'email' })
+      .catch((error) => {
+        res.status(409).json({ error: "email" });
       })
-      .then(user => {
+      .then((user) => {
         if (!user) {
-          bcrypt.hash(password, 10)
-            .then(hash => {
+          bcrypt
+            .hash(password, 10)
+            .then((hash) => {
               let newUser = models.User.create({
                 username: req.body.username,
                 email: email,
                 password: hash,
-                isAdmin: false
+                isAdmin: false,
               })
-                .then(newUser => {
-                  res.status(201).json({ 'Utilisateur crée ! id : ': newUser.id })
-
+                .then((newUser) => {
+                  res
+                    .status(201)
+                    .json({ "Utilisateur crée ! id : ": newUser.id });
                 })
-                .catch(error => {
-                  res.status(409).json({ error: 'test pour voir sinon' })
+                .catch((error) => {
+                  res.status(409).json({ error: "test pour voir sinon" });
                 });
             })
-            .catch(error => { res.status(500).json({ error }) })
-        } else { res.status(409).json({ error: 'Cette utilisateur existe déjà' }) }
+            .catch((error) => {
+              res.status(500).json({ error });
+            });
+        } else {
+          res.status(409).json({ error: "Cette utilisateur existe déjà" });
+        }
       })
-      .catch(error => {
-        res.status(409).json({ error: 'test pour voir si ' })
-      })
+      .catch((error) => {
+        res.status(409).json({ error: "test pour voir si " });
+      });
   } else {
     console.log("la condition n'est pas remplis :Kappa");
   }
-}
+};
 exports.login = (req, res, next) => {
   let username = req.body.username;
   let password = req.body.password;
 
   if (username == null || password == null) {
-    res.status(400).json({ error: "Le document n'est pas complet" })
+    res.status(400).json({ error: "Le document n'est pas complet" });
   }
   models.User.findOne({
-    where: { username }
-
+    where: { username },
   })
-    .then(user => {
+    .then((user) => {
       if (!user) {
-        return res.status(404).json({ error: 'Utilisateur non trouvé !' });
+        return res.status(404).json({ error: "Utilisateur non trouvé !" });
       }
-      bcrypt.compare(req.body.password, user.password)
-        .then(valid => {
+      bcrypt
+        .compare(req.body.password, user.password)
+        .then((valid) => {
           if (!valid) {
-            return res.status(403).json({ error: 'Mot de passe incorrect !' });
+            return res.status(403).json({ error: "Mot de passe incorrect !" });
           }
           res.status(200).json({
             uuid: user.uuid,
             email: decrypt(user.email),
             isAdmin: user.isAdmin,
             username: user.username,
-            token: jwt.sign(
-              { uuid: user.uuid },
-              'RANDOM_TOKEN_SECRET',
-              { expiresIn: '24h' }
-            )
+            token: jwt.sign({ uuid: user.uuid }, "RANDOM_TOKEN_SECRET", {
+              expiresIn: "24h",
+            }),
           });
         })
-        .catch(error => res.status(500).json({ error }));
+        .catch((error) => res.status(500).json({ error }));
     })
-    .catch(error => res.status(500).json({ error }));
+    .catch((error) => res.status(500).json({ error }));
 };
 
-//obtenir le profil d'un utilisateur 
+//obtenir le profil d'un utilisateur
 exports.userProfil = (req, res, next) => {
-
   let username = req.body.username;
   models.User.findOne({
-    attributes: ['username'],
+    attributes: ["username"],
     where: { username: username },
-    include: 'posts',
-
   })
-    .then(User => res.status(200).json(User))
-    .catch(error => res.status(500).json(error))
+    .then((User) => res.status(200).json(User))
+    .catch((error) => res.status(500).json(error));
 };
 
 //supprimer le profil
 exports.deleteProfile = (req, res, next) => {
-  let userIsAdmin = req.body.userIsAdmin
+  let userIsAdmin = req.body.userIsAdmin;
   let uuid = req.body.deleteUserUuid;
-  console.log('je suis dans deleteprofile')
+  console.log("je suis dans deleteprofile");
   models.User.findOne({
-    include: [{
-      model: models.post, as: 'post',
-    }],
-    where: { uuid }
+    where: { uuid },
   })
-    .then(user => {
-      console.log("test " + user)
+    .then((user) => {
+      console.log("test " + user);
       if (user != null && (user.uuid == uuid || userIsAdmin == 1)) {
-        //supprimé les attachement des posts puis les posts !
-
-        
-  console.log("je suppose que req.body est undefined")
-  console.log(user)
-  let uuid = user.uuid;
-  console.log("j'suis bien ici ?")
-  //selection les posts et lance la boucle forEach
-  models.post.findAll({
-    where: { userId: user.id }
-  })
-    .then((response) => {
-      console.dir(response + "   pourquoi ici ?")
-      if (response.length > 0) {
-        response.forEach(post => {
-          deleteAllArrayPost(post)
-        })
+        let uuid = user.uuid;
         models.User.destroy({ where: { uuid } })
-            .catch(err => console.log(err))
-            .then(() => res.end())
-      } else { 
-        models.User.destroy({ where: { uuid } })
-            .catch(err => console.log(err))
-            .then(() => res.end())
-
-    }
-  })
-
-
-
+          .catch((err) => console.log(err))
+          .then(() => res.end());
       } else {
-        res.status(401).json({ error: "Cet user n'existe pas" })
+        res.status(401).json({ error: "Cet user n'existe pas" });
       }
-    }).catch(err => res.status(404).json(err))
-}
-
-
-
+    })
+    .catch((err) => res.status(404).json(err));
+};
 
 //changer le password
 exports.changePwd = (req, res, next) => {
   let uuid = req.params.uuid;
   const newPassword = req.body.newPassword;
-  console.log("voici le nouveau Mdp : " + newPassword)
-  console.log('admin vérifions si validPassword est juste : ' + verifInput.validPassword(newPassword))
+  console.log("voici le nouveau Mdp : " + newPassword);
+  console.log(
+    "admin vérifions si validPassword est juste : " +
+      verifInput.validPassword(newPassword)
+  );
   if (verifInput.validPassword(newPassword)) {
     models.User.findOne({
-      where: { uuid }
+      where: { uuid },
     })
-      .then(user => {
+      .then((user) => {
         if (user) {
-          console.log('user trouvé', user)
-          bcrypt.hash(newPassword, 10)
-            .then(hash => {
-              console.log("c'est le hash : " + hash)
-              models.User
-                .update({ password: hash }, { where: { uuid: uuid } },
-              )
+          console.log("user trouvé", user);
+          bcrypt
+            .hash(newPassword, 10)
+            .then((hash) => {
+              console.log("c'est le hash : " + hash);
+              models.User.update({ password: hash }, { where: { uuid: uuid } });
             })
-            .then(() => res.status(201).json({ confirmation: 'mot de passe modifié avec succès' }))
-            .catch(err => res.status(500).json(err))
-        } else res.status(404).json({ error: "Utilisateur inconnue" })
-
+            .then(() =>
+              res
+                .status(201)
+                .json({ confirmation: "mot de passe modifié avec succès" })
+            )
+            .catch((err) => res.status(500).json(err));
+        } else res.status(404).json({ error: "Utilisateur inconnue" });
       })
-      .catch(err => res.status(500).json(err))
+      .catch((err) => res.status(500).json(err));
   } else {
-    res.status(406).json({ error: 'mot de passe non valide' })
+    res.status(406).json({ error: "mot de passe non valide" });
   }
-}
+};
 
 exports.getAll = (req, res, next) => {
   let uuid = req.params.uuid;
 
   models.User.findOne({
-    where: { uuid }
-  })
-    .then(user => {
-      if (user.isAdmin == 1) {
-        models.User.findAll()
-          .then(users => res.status(200).json(users))
-          .catch(err => res.status(500).json(err))
-      } else {
-        res.status(403).json({ error: "Vous n'êtes pas Admin" })
-      }
-    })
-}
+    where: { uuid },
+  }).then((user) => {
+    if (user.isAdmin == 1) {
+      models.User.findAll()
+        .then((users) => res.status(200).json(users))
+        .catch((err) => res.status(500).json(err));
+    } else {
+      res.status(403).json({ error: "Vous n'êtes pas Admin" });
+    }
+  });
+};
